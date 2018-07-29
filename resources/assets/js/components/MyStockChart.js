@@ -1,13 +1,13 @@
 import React from 'react'
 import Highcharts from 'highcharts/highstock'
 import HighchartsReact from 'highcharts-react-official'
-import _ from 'lodash'
 
-const MyStockChart = (props) => {
+
+const changeDateTime = (originDatas) => {
   const datas = [];
 
-  // transfer data from object to array
-  props.data.map( (data) => {
+  // transfer each data from object to array
+  originDatas.map( (data) => {
     datas.push(Object.values(data))
   })
 
@@ -15,6 +15,13 @@ const MyStockChart = (props) => {
   for(var k in datas) {
     datas[k][0] = new Date(datas[k][0]).getTime()
   }
+
+  return datas;
+}
+
+const MyStockChart = (props) => {
+  const data = changeDateTime(props.data);
+  const maxProfit = changeDateTime(props.maxProfit);
 
   return (
     <HighchartsReact
@@ -27,7 +34,11 @@ const MyStockChart = (props) => {
         },
         series: [{
             name: 'QUALCOMM',
-            data: datas,
+            data: data,
+          },{
+            name: 'Max Profit Period',
+            data: maxProfit,
+            color: 'red'
           }]
         }
       }

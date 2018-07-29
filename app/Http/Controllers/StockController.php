@@ -15,10 +15,11 @@ class StockController extends Controller
      */
     public function index()
     {
-        //
-        // $data = Stock::all();
+        // get data from database and return data order by date
         $data = Stock::findOrFail(1);
-        $data = Stock::select('date','value')->get();
+        $data = Stock::select('date','value')
+                ->orderBy('date','asc')    
+                ->get();
         return response()->json($data);
     }
 

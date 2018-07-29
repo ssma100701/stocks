@@ -36344,13 +36344,18 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__MyStockChart__ = __webpack_require__(58);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_axios__ = __webpack_require__(12);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_axios___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_axios__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_lodash__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_lodash___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4_lodash__);
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 
 
 
@@ -36376,6 +36381,7 @@ var Stock = function (_Component) {
         value: function componentWillMount() {
             var _this2 = this;
 
+            // get data from database
             __WEBPACK_IMPORTED_MODULE_3_axios___default.a.get('api/stock').then(function (response) {
                 _this2.setState({
                     stocks: response.data
@@ -36385,12 +36391,50 @@ var Stock = function (_Component) {
             });
         }
     }, {
+        key: 'calMaxProfit',
+        value: function calMaxProfit() {
+            var low = void 0; // buy date
+            var high = void 0; // sell date
+            var benefit = [low, high, 0];
+            var data = this.state.stocks;
+            for (var i = 0; i < data.length - 1; i++) {
+                /* for each decrease period, find the lowest price and calculate the max profit of this decerease period */
+                if (data[i].value < data[i + 1].value) {
+                    low = data[i];
+                    high = data[i + 1];
+                    for (var j = i + 1; j < data.length - 1; j++) {
+                        if (data[j].value > high.value) {
+                            high = data[j];;
+                        }
+                    }
+                }
+                /* find out the max profit from each decrease period */
+                if (low && high) // while low and high element are not undefined
+                    {
+                        var profit = high.value - low.value;
+                        if (profit > benefit[2]) benefit.splice(0, 3, low, high, profit);
+                    }
+            }
+            return benefit;
+        }
+    }, {
+        key: 'maxProfitPeriod',
+        value: function maxProfitPeriod() {
+            var profitData = [].concat(_toConsumableArray(this.state.stocks));
+            var period = this.calMaxProfit();
+            // set up the max profit period
+            __WEBPACK_IMPORTED_MODULE_4_lodash___default.a.remove(profitData, function (d) {
+                return d.date < period[0].date || d.date > period[1].date;
+            });
+            return profitData;
+        }
+    }, {
         key: 'render',
         value: function render() {
             return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                 'div',
                 { className: 'container' },
-                __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_2__MyStockChart__["a" /* default */], { data: this.state.stocks })
+                __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_2__MyStockChart__["a" /* default */], { data: this.state.stocks, maxProfit: this.maxProfitPeriod() })
             );
         }
     }]);
@@ -55817,18 +55861,15 @@ module.exports = camelize;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_highcharts_highstock___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_highcharts_highstock__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_highcharts_react_official__ = __webpack_require__(60);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_highcharts_react_official___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_highcharts_react_official__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_lodash__ = __webpack_require__(8);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_lodash___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_lodash__);
 
 
 
 
-
-var MyStockChart = function MyStockChart(props) {
+var changeDateTime = function changeDateTime(originDatas) {
   var datas = [];
 
-  // transfer data from object to array
-  props.data.map(function (data) {
+  // transfer each data from object to array
+  originDatas.map(function (data) {
     datas.push(Object.values(data));
   });
 
@@ -55836,6 +55877,13 @@ var MyStockChart = function MyStockChart(props) {
   for (var k in datas) {
     datas[k][0] = new Date(datas[k][0]).getTime();
   }
+
+  return datas;
+};
+
+var MyStockChart = function MyStockChart(props) {
+  var data = changeDateTime(props.data);
+  var maxProfit = changeDateTime(props.maxProfit);
 
   return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_2_highcharts_react_official___default.a, {
     highcharts: __WEBPACK_IMPORTED_MODULE_1_highcharts_highstock___default.a,
@@ -55846,7 +55894,11 @@ var MyStockChart = function MyStockChart(props) {
       },
       series: [{
         name: 'QUALCOMM',
-        data: datas
+        data: data
+      }, {
+        name: 'Max Profit Period',
+        data: maxProfit,
+        color: 'red'
       }]
     }
   });
