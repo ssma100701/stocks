@@ -39,7 +39,7 @@ const MyStockChart = (props) => {
             name: 'Max Profit Period',
             data: maxProfit,
             color: 'red'
-          }]
+          }],
         }
       }
     />

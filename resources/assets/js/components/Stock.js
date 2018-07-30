@@ -65,7 +65,9 @@ export default class Stock extends Component {
 
     render() {
         return (
+            
             <div className="container">
+            <h1>QUALCOMM Stock Price</h1>   
                 <MyStockChart data={this.state.stocks} maxProfit={this.maxProfitPeriod()}/>               
             </div>
         );
